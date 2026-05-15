@@ -1,0 +1,80 @@
+name: Claude Code PR Review
+
+# Automated first-pass review on every PR — a separate Claude instance
+# with no shared context from the author's session.
+#
+# Requirements:
+#   - ANTHROPIC_API_KEY secret set in repository settings
+#   - GitHub Actions has pull-request write permission (set below)
+#
+# The review runs independently and posts as a PR comment.
+# It does NOT block merge — use it alongside human review, not instead of it.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Generate diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr_diff.txt
+          echo "Diff size: $(wc -l < /tmp/pr_diff.txt) lines"
+
+      - name: Run Claude Code review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          claude --print "
+          You are a senior engineer doing an automated first-pass review of a pull request.
+          Your review is independent — you have no context from the author's session.
+
+          Review the diff below across five axes:
+
+          1. CORRECTNESS — logic errors, wrong assumptions, missing edge cases, broken contracts
+          2. SECURITY — credentials in source, injection via string interpolation, auth bypasses,
+             overly broad IAM/permissions, unvalidated external input
+          3. TESTS — is new behaviour covered? would the tests actually catch a regression?
+          4. DESIGN — consistent with the codebase patterns? speculative abstraction?
+             layering violations? naming that obscures intent?
+          5. DEPENDENCIES — new packages added without clear justification? known CVEs?
+
+          Format your response exactly as a GitHub PR comment:
+
+          ## Automated Review
+
+          ### Critical (must fix before merge)
+          <!-- bugs, security issues, broken tests -->
+
+          ### Warnings (should fix)
+          <!-- design issues, missing test coverage, suspicious patterns -->
+
+          ### Suggestions (nice to have)
+          <!-- readability, minor improvements -->
+
+          ### Verdict
+          APPROVE | REQUEST CHANGES
+
+          Rules:
+          - Be specific: file and line number for every finding.
+          - If a section has no findings, write 'None.'
+          - Do not repeat the diff back.
+          - Keep the total response under 600 words.
+
+          Diff (first 500 lines):
+          $(head -500 /tmp/pr_diff.txt)
+          " | gh pr comment ${{ github.event.pull_request.number }} --body-file -

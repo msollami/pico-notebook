@@ -9,7 +9,8 @@ const mathLang = StreamLanguage.define(mathematica);
 interface Props {
   value: string;
   onChange: (val: string) => void;
-  onRun: () => void;
+  /** Called when the user requests evaluation. Null in batch mode — Shift-Enter is a no-op. */
+  onRun: (() => void) | null;
   lineNumber: number | null;
 }
 
@@ -18,8 +19,8 @@ export default function CellInput({ value, onChange, onRun, lineNumber }: Props)
     {
       key: "Shift-Enter",
       run: () => {
-        onRun();
-        return true;
+        onRun?.();
+        return true; // always consume the keystroke so it doesn't insert a newline
       },
     },
   ]);
