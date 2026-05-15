@@ -1,0 +1,336 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0b0b0e;
+  --bg-cell: #15151a;
+  --bg-cell-active: #1c1c23;
+  --bg-hover: #1f1f27;
+  --fg: #e8e8ec;
+  --fg-dim: #6b6b75;
+  --fg-muted: #45454f;
+  --accent: #7c5cff;
+  --accent-dim: rgba(124, 92, 255, 0.15);
+  --error: #ff5c7c;
+  --error-dim: rgba(255, 92, 124, 0.1);
+  --success: #4ade80;
+  --null: #4a4a52;
+  --border: #2a2a35;
+  --mono: "JetBrains Mono", "SF Mono", Menlo, "Cascadia Code", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-muted);
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Tab bar ──────────────────────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  height: 36px;
+  padding: 0 4px;
+  gap: 2px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--fg-dim);
+  white-space: nowrap;
+  font-size: 12px;
+  transition: background 0.1s, color 0.1s;
+  user-select: none;
+}
+.tab:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+.tab.active {
+  background: var(--bg-cell);
+  color: var(--fg);
+}
+.tab-close {
+  opacity: 0;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  border-radius: 3px;
+  color: var(--fg-dim);
+}
+.tab:hover .tab-close {
+  opacity: 0.6;
+}
+.tab-close:hover {
+  opacity: 1 !important;
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+.tab-new {
+  padding: 0 8px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--fg-dim);
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: color 0.1s, background 0.1s;
+}
+.tab-new:hover {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+
+/* ── Kernel status dot ────────────────────────────────────────────────────── */
+.kernel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fg-muted);
+  flex-shrink: 0;
+}
+.kernel-dot.ready {
+  background: var(--success);
+}
+.kernel-dot.busy {
+  background: var(--accent);
+  animation: pulse 1s ease-in-out infinite;
+}
+.kernel-dot.dead {
+  background: var(--error);
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Notebook view ────────────────────────────────────────────────────────── */
+.notebook-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--fg-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  transition: all 0.1s;
+  font-family: var(--mono);
+}
+.toolbar-btn:hover {
+  color: var(--fg);
+  border-color: var(--fg-muted);
+  background: var(--bg-hover);
+}
+.toolbar-btn.danger:hover {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+/* ── Cell list ────────────────────────────────────────────────────────────── */
+.cell-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Cell ─────────────────────────────────────────────────────────────────── */
+.cell {
+  display: flex;
+  flex-direction: row;
+  background: var(--bg-cell);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  transition: border-left-color 0.15s;
+  overflow: hidden;
+}
+.cell:focus-within {
+  border-color: var(--border);
+  border-left-color: var(--accent-dim);
+}
+.cell.focused {
+  border-left-color: var(--accent);
+}
+.cell.running {
+  border-left-color: var(--accent);
+}
+.cell.error {
+  border-left-color: var(--error);
+  background: color-mix(in srgb, var(--bg-cell) 95%, var(--error));
+}
+
+/* ── Gutter (In[N] / Out[N] labels) ──────────────────────────────────────── */
+.cell-gutter {
+  width: 68px;
+  flex-shrink: 0;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--fg-muted);
+  font-size: 11px;
+  user-select: none;
+}
+.gutter-in {
+  color: var(--fg-dim);
+}
+.gutter-out {
+  color: var(--fg-muted);
+}
+
+/* ── Cell body ────────────────────────────────────────────────────────────── */
+.cell-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Cell input (CodeMirror host) ─────────────────────────────────────────── */
+.cell-input {
+  padding: 8px 0;
+}
+/* Override CodeMirror defaults for dark theme */
+.cm-editor {
+  background: transparent !important;
+}
+.cm-editor .cm-content {
+  font-family: var(--mono) !important;
+  font-size: 13px !important;
+  color: var(--fg) !important;
+  caret-color: var(--accent) !important;
+  padding: 0 8px;
+}
+.cm-editor .cm-focused {
+  outline: none !important;
+}
+.cm-editor .cm-line {
+  padding: 0;
+}
+.cm-editor .cm-activeLine {
+  background: transparent !important;
+}
+.cm-editor .cm-selectionBackground,
+.cm-editor .cm-focused .cm-selectionBackground {
+  background: var(--accent-dim) !important;
+}
+.cm-editor .cm-cursor {
+  border-left-color: var(--accent) !important;
+}
+
+/* ── Cell output ─────────────────────────────────────────────────────────── */
+.cell-output {
+  padding: 6px 8px 10px;
+  font-size: 13px;
+  color: var(--fg);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  border-top: 1px solid var(--border);
+}
+.cell-output.is-null {
+  color: var(--null);
+  opacity: 0.5;
+}
+.cell-output.is-error {
+  color: var(--error);
+}
+.cell-output-meta {
+  font-size: 10px;
+  color: var(--fg-muted);
+  margin-top: 4px;
+}
+
+/* ── Add cell button ──────────────────────────────────────────────────────── */
+.add-cell-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--mono);
+  background: transparent;
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+.add-cell-btn:hover {
+  border-color: var(--fg-muted);
+  color: var(--fg-dim);
+  background: var(--bg-hover);
+}
