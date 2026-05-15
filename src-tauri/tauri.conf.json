@@ -12,9 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "pico-notebook",
-        "width": 800,
-        "height": 600
+        "title": "PicoCAS Notebook",
+        "width": 1100,
+        "height": 900,
+        "minWidth": 700,
+        "minHeight": 500
       }
     ],
     "security": {
@@ -30,6 +32,8 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "externalBin": ["binaries/picocas"],
+    "resources": ["resources/src/**/*"]
   }
 }
