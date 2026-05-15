@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Cell as CellType } from "../types/notebook";
 import { useNotebookStore } from "../store/notebook";
+import { useSettings } from "../store/settings";
 import CellInput from "./CellInput";
 import CellOutput from "./CellOutput";
 
@@ -12,15 +13,13 @@ interface Props {
 
 export default function Cell({ cell, notebookId, index }: Props) {
   const { updateSource, runCell } = useNotebookStore();
+  const { executionMode } = useSettings();
   const inputRef = useRef<HTMLDivElement>(null);
 
-  const run = () => runCell(notebookId, cell.id);
+  // In batch mode Shift-Enter is a no-op — user runs via Run All or ⌘⇧Enter.
+  const onRun = executionMode === "immediate" ? () => runCell(notebookId, cell.id) : null;
 
-  const handleChange = (val: string) => {
-    updateSource(notebookId, cell.id, val);
-    // In immediate mode, running is triggered by Shift-Enter inside CellInput.
-    // In batch mode, user clicks Run All or uses ⌘⇧Enter.
-  };
+  const handleChange = (val: string) => updateSource(notebookId, cell.id, val);
 
   const statusClass = cell.status === "running"
     ? "running"
@@ -44,7 +43,7 @@ export default function Cell({ cell, notebookId, index }: Props) {
         <CellInput
           value={cell.source}
           onChange={handleChange}
-          onRun={run}
+          onRun={onRun}
           lineNumber={cell.lineNumber ?? index + 1}
         />
         <CellOutput cell={cell} />

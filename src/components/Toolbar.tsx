@@ -1,4 +1,5 @@
 import { useNotebookStore } from "../store/notebook";
+import { useSettings } from "../store/settings";
 
 interface Props {
   notebookId: string;
@@ -6,6 +7,8 @@ interface Props {
 
 export default function Toolbar({ notebookId }: Props) {
   const { runAll, resetKernel } = useNotebookStore();
+  const { executionMode, setExecutionMode } = useSettings();
+  const isImmediate = executionMode === "immediate";
 
   return (
     <div className="toolbar">
@@ -15,6 +18,14 @@ export default function Toolbar({ notebookId }: Props) {
         onClick={() => runAll(notebookId)}
       >
         ▶ Run All
+      </button>
+      <button
+        className="toolbar-btn"
+        title={isImmediate ? "Immediate mode: Shift+Enter runs cell" : "Batch mode: use Run All"}
+        onClick={() => setExecutionMode(isImmediate ? "batch" : "immediate")}
+        style={{ minWidth: 120 }}
+      >
+        {isImmediate ? "⚡ Immediate" : "⏸ Batch"}
       </button>
       <button
         className="toolbar-btn danger"
