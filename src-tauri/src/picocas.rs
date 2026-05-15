@@ -70,7 +70,7 @@ impl PicocasKernel {
             // sequences when stdin/stdout are pipes, which can cause it to hang
             // trying to open /dev/tty.
             .env("TERM", "dumb")
-            .env("INPUTRC", "/dev/null") // skip user readline config
+            .env("INPUTRC", "/dev/null")
             .kill_on_drop(true)
             .spawn()
             .with_context(|| format!("failed to spawn picocas at {}", binary.display()))?;
@@ -127,23 +127,25 @@ impl PicocasKernel {
         mut stdout: BufReader<ChildStdout>,
         mut rx: mpsc::Receiver<EvalRequest>,
     ) {
+        // Pre-allocate buffers outside the request loop to avoid per-eval allocation.
+        let mut lines: Vec<String> = Vec::with_capacity(4);
+        let mut raw = String::with_capacity(256);
+
         while let Some(req) = rx.recv().await {
             let started = Instant::now();
 
-            // Encode multi-line expressions with backslash continuation.
             let payload = encode_multiline(&req.expr);
 
-            // Write to picocas stdin.
             if stdin.write_all(payload.as_bytes()).await.is_err() || stdin.flush().await.is_err() {
                 let _ = req.reply.send(Err(KernelError::Dead));
                 break;
             }
 
             // Read stdout until blank line (result terminator).
-            let mut lines: Vec<String> = Vec::new();
+            lines.clear();
             let mut got_output = false;
             loop {
-                let mut raw = String::new();
+                raw.clear();
                 match stdout.read_line(&mut raw).await {
                     Ok(0) => {
                         // EOF — subprocess died.
@@ -238,7 +240,6 @@ fn parse_result(lines: &[String], elapsed_ms: u64) -> EvalResult {
         if let Some(after_out) = line.strip_prefix("Out[") {
             if let Some(bracket_pos) = after_out.find(']') {
                 let line_number: u32 = after_out[..bracket_pos].parse().unwrap_or(0);
-                // "]= " is 3 chars
                 let output = after_out.get(bracket_pos + 3..).unwrap_or("").to_string();
                 let is_null = output == "Null";
                 return EvalResult {
