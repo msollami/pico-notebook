@@ -8,6 +8,26 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => ({
   plugins: [react()],
 
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split CodeMirror into its own chunk — ~350 KB of the total
+          // Note: @codemirror/legacy-modes uses sub-path imports, exclude from chunk list
+          "codemirror": [
+            "@codemirror/state",
+            "@codemirror/view",
+            "@codemirror/language",
+            "@codemirror/commands",
+            "@uiw/react-codemirror",
+          ],
+          // React + ReactDOM in their own chunk
+          "react-vendor": ["react", "react-dom"],
+        },
+      },
+    },
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors
